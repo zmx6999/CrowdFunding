@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import CardList from "../common/cardlist"
 import RequestTable from "../common/requestlist"
 import {Button} from 'semantic-ui-react'
-import {getFundingList,showRequests,approve} from "../../eth/interactions"
+import {getFundingList,getRequestList,approveRequest} from "../../eth/interactions"
 class InvestorFundingTab extends Component {
     constructor() {
         super()
@@ -39,7 +39,7 @@ class InvestorFundingTab extends Component {
         const {selectedFunding}=this.state
         const {address}=selectedFunding
         try {
-            let requests=await showRequests(address)
+            let requests=await getRequestList(address)
             this.setState({
                 requests
             })
@@ -52,7 +52,7 @@ class InvestorFundingTab extends Component {
         const {selectedFunding}=this.state
         const {address}=selectedFunding
         try {
-            await approve(address,index)
+            await approveRequest(address,index)
             alert("success")
             window.location.reload(true)
         } catch (e) {

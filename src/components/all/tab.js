@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import CardList from "../common/cardlist";
 import {Dimmer, Form, Label, Loader, Segment} from "semantic-ui-react"
-import {getFundingList,invest} from "../../eth/interactions"
+import {getFundingList,support} from "../../eth/interactions"
 class AllFundingTab extends Component {
     constructor() {
         super()
@@ -38,7 +38,7 @@ class AllFundingTab extends Component {
         const {address,supportMoney}=selectedFunding
         this.setState({active:true})
         try {
-            await invest(address,supportMoney)
+            await support(address,supportMoney)
             alert("success")
             window.location.reload(true)
         } catch (e) {

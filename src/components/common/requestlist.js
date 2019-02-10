@@ -5,7 +5,7 @@ import web3 from "../../utils/initweb3"
 const RequestTable = (props) => {
     const {requests,pageKey,investorCount,handleFinalize,handleApprove}=props
     let cells=requests.map((request,k)=>{
-        let {0:purpose,1:to,2:cost,3:approvedCount,4:approved,5:status}=request
+        let {0:purpose,1:to,2:cost,3:approvedCount,4:status,5:approved}=request
         let complete=status==1
         return (
             <Table.Row key={k}>

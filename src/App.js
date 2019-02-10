@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import TabCenter from "./components/tab";
-import web3 from "./utils/initweb3"
+import {getAccounts} from "./eth/interactions"
 
 class App extends Component {
     constructor() {
@@ -10,7 +10,7 @@ class App extends Component {
 
     async componentDidMount() {
         try {
-            let accounts=await web3.eth.getAccounts()
+            let accounts=await getAccounts()
             this.setState({
                 currentAccount:accounts[0]
             })

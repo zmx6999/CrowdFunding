@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import CardList from "../common/cardlist"
 import RequestTable from "../common/requestlist"
 import {Dimmer, Form, Label, Loader, Segment,Button} from "semantic-ui-react"
-import {getFundingList,finalize,showRequests,createRequest,newFunding} from "../../eth/interactions"
+import {getFundingList,finalizeRequest,getRequestList,createRequest,newFunding} from "../../eth/interactions"
 class CreatorFundingTab extends Component {
     constructor() {
         super()
@@ -39,7 +39,7 @@ class CreatorFundingTab extends Component {
         const {selectedFunding}=this.state
         const {address}=selectedFunding
         try {
-            let requests=await showRequests(address)
+            let requests=await getRequestList(address)
             this.setState({
                 requests
             })
@@ -52,7 +52,7 @@ class CreatorFundingTab extends Component {
         const {selectedFunding}=this.state
         const {address}=selectedFunding
         try {
-            await finalize(address,index)
+            await finalizeRequest(address,index)
             alert("success")
             window.location.reload(true)
         } catch (e) {

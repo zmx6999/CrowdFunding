@@ -1,115 +1,134 @@
-import {fundingFactoryContract,fundingContract} from "./contracts"
-import web3 from "../utils/initweb3"
-const getFundingList=(x=0) => new Promise(async (resolve, reject) => {
+import web3 from '../utils/initweb3'
+import {crowdFundingFactoryInstance,getCrowdFundingInstance} from "./contracts"
+
+const getAccounts = () => new Promise(async (resolve,reject) => {
     try {
-        let _contracts=[]
-        if (x==1) {
-            let accounts=await web3.eth.getAccounts()
-            _contracts=await fundingFactoryContract.methods.getCreatorFunding(accounts[0]).call()
-        } else if (x==2) {
-            let accounts=await web3.eth.getAccounts()
-            _contracts=await fundingFactoryContract.methods.getInvestorFunding(accounts[0]).call()
+        let r = await web3.eth.getAccounts()
+        resolve(r)
+    } catch (e) {
+        reject(e)
+    }
+})
+
+const getFundingList = (x = 0) => new Promise(async (resolve,reject) => {
+    try {
+        let accounts = await getAccounts()
+        let _contractList = []
+        if (x == 1) {
+            _contractList = await crowdFundingFactoryInstance.methods.getCreatorFundingList(accounts[0]).call()
+        } else if (x == 2) {
+            _contractList = await crowdFundingFactoryInstance.methods.getInvestorFundingList(accounts[2]).call()
         } else {
-            _contracts=await fundingFactoryContract.methods.getFundingContracts().call()
+            _contractList = await crowdFundingFactoryInstance.methods.getFundingList().call()
         }
-        let contractsPromise=_contracts.map(address => getFundingDetail(address))
-        let contracts=Promise.all(contractsPromise)
-        resolve(contracts)
+        let contractPromise = _contractList.map(address => getFundingDetail(address))
+        let contractList = Promise.all(contractPromise)
+        resolve(contractList)
     } catch (e) {
         reject(e)
     }
 })
 
-const getFundingDetail=(address) => new Promise(async (resolve, reject) => {
+const getFundingDetail = address => new Promise(async (resolve,reject) => {
     try {
-        let instance=fundingContract()
-        instance.options.address=address
-        let name=await instance.methods.name().call()
-        let targetMoney=await instance.methods.targetMoney().call()
-        let supportMoney=await instance.methods.supportMoney().call()
-        let endTime=await instance.methods.getExtraTime().call()
-        let investorCount=await instance.methods.getInvestorsCount().call()
-        let balance=await instance.methods.getBalance().call()
-        resolve({name,targetMoney,supportMoney,endTime,investorCount,balance,address})
+        let instance = getCrowdFundingInstance()
+        instance.options.address = address
+        let name = await instance.methods.name().call()
+        let targetMoney = await instance.methods.targetMoney().call()
+        let supportMoney = await instance.methods.supportMoney().call()
+        let investorCount = await instance.methods.getInvestorCount().call()
+        let endTime = await instance.methods.getTimeLeft().call()
+        let balance = await instance.methods.getBalance().call()
+        resolve({address,name,targetMoney,supportMoney,investorCount,endTime,balance})
     } catch (e) {
         reject(e)
     }
 })
 
-const newFunding=(name,targetMoney,supportMoney,duration) => new Promise(async (resolve, reject) => {
+const newFunding = (name,targetMoney,supportMoney,duration) => new Promise(async (resolve,reject) => {
     try {
-        let accounts=await web3.eth.getAccounts()
-        let r=await fundingFactoryContract.methods.newFunding(name,targetMoney,supportMoney,duration).send({from:accounts[0]})
+        let accounts = await getAccounts()
+        let r = await crowdFundingFactoryInstance.methods.createCrowdFunding(name,targetMoney,supportMoney,duration).send({from:accounts[1],gas:3000000})
         resolve(r)
     } catch (e) {
         reject(e)
     }
 })
 
-const invest=(address,supportMoney) => new Promise(async (resolve, reject) => {
+const support = (address,supportMoney) => new Promise(async (resolve,reject) => {
     try {
-        let instance=fundingContract()
-        instance.options.address=address
-        let accounts=await web3.eth.getAccounts()
-        let r=await instance.methods.invest().send({from:accounts[0],value:supportMoney})
+        let accounts = await getAccounts()
+        let instance = getCrowdFundingInstance()
+        instance.options.address = address
+        let r = await instance.methods.support().send({from:accounts[2],gas:3000000,value:supportMoney})
         resolve(r)
     } catch (e) {
         reject(e)
     }
 })
 
-const createRequest=(address,purpose,to,cost) => new Promise(async (resolve, reject) => {
+const createRequest = (address,purpose,to,amount) => new Promise(async (resolve,reject) => {
     try {
-        let instance=fundingContract()
-        instance.options.address=address
-        let accounts=await web3.eth.getAccounts()
-        let r=await instance.methods.createRequest(purpose,to,cost).send({from:accounts[0]})
+        let accounts = await getAccounts()
+        let instance = getCrowdFundingInstance()
+        instance.options.address = address
+        let r = await instance.methods.createRequest(purpose,to,amount).send({from:accounts[0],gas:3000000})
         resolve(r)
     } catch (e) {
         reject(e)
     }
 })
 
-const showRequests=(address) => new Promise(async (resolve, reject) => {
+const approveRequest = (address,requestId) => new Promise(async (resolve,reject) => {
     try {
-        let instance=fundingContract()
-        instance.options.address=address
-        let requestCount=await instance.methods.getRequestCount().call()
-        console.log(requestCount)
-        let accounts=await web3.eth.getAccounts()
-        let requests=[]
+        let accounts = await getAccounts()
+        let instance = getCrowdFundingInstance()
+        instance.options.address = address
+        let r = await instance.methods.approveRequest(requestId).send({from:accounts[2],gas:3000000})
+        resolve(r)
+    } catch (e) {
+        reject(e)
+    }
+})
+
+const finalizeRequest = (address,requestId) => new Promise(async (resolve,reject) => {
+    try {
+        let accounts = await getAccounts()
+        let instance = getCrowdFundingInstance()
+        instance.options.address = address
+        let r = await instance.methods.finalizeRequest(requestId).send({from:accounts[2],gas:3000000})
+        resolve(r)
+    } catch (e) {
+        reject(e)
+    }
+})
+
+const getRequestList = address => new Promise(async (resolve,reject) => {
+    try {
+        let instance = getCrowdFundingInstance()
+        instance.options.address = address
+        let requestCount = await instance.methods.getRequestCount().call()
+        let requestList = []
         for (let i=0;i<requestCount;i++) {
-            let request=await instance.methods.getRequest(i).call({from:accounts[0]})
-            requests.push(request)
+            let request = await getRequest(address,i)
+            requestList.push(request)
         }
-        resolve(requests)
+        resolve(requestList)
     } catch (e) {
         reject(e)
     }
 })
 
-const approve=(address,index) => new Promise(async (resolve, reject) => {
+const getRequest = (address,requestId) => new Promise(async (resolve,reject) => {
     try {
-        let instance=fundingContract()
-        instance.options.address=address
-        let accounts=await web3.eth.getAccounts()
-        let r=await instance.methods.approve(index).send({from:accounts[0]})
+        let accounts = await getAccounts()
+        let instance = getCrowdFundingInstance()
+        instance.options.address = address
+        let r = await instance.methods.getRequest(requestId).call({from:accounts[2]})
         resolve(r)
     } catch (e) {
         reject(e)
     }
 })
 
-const finalize=(address,index) => new Promise(async (resolve, reject) => {
-    try {
-        let instance=fundingContract()
-        instance.options.address=address
-        let accounts=await web3.eth.getAccounts()
-        let r=await instance.methods.finalize(index).send({from:accounts[0]})
-        resolve(r)
-    } catch (e) {
-        reject(e)
-    }
-})
-
-export {getFundingList,newFunding,invest,approve,finalize,createRequest,showRequests}
+export {getAccounts,getFundingList,getFundingDetail,newFunding,support,createRequest,approveRequest,finalizeRequest,getRequestList}

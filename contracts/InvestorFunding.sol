@@ -1,13 +1,13 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.4.0;
 
 contract InvestorFunding {
-    mapping(address=>address[]) public investorFunding;
+    mapping(address=>address[]) investorFundingList;
 
-    function join(address investor,address funding) public {
-        investorFunding[investor].push(funding);
+    function getInvestorFundingList(address investor) public view returns (address[]) {
+        return investorFundingList[investor];
     }
 
-    function getInvestorFunding(address investor) public view returns (address[]) {
-        return investorFunding[investor];
+    function join(address investor,address funding) public {
+        investorFundingList[investor].push(funding);
     }
 }
